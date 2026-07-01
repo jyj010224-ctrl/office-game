@@ -87,7 +87,7 @@ function handleMessage(userId, nickname, msg) {
     u.points += gain;
     u.last_work = Date.now();
     db.saveUser(u);
-    return { text: `💼 [${RANKS[u.rank].name}] ${nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: workImg };
+    return { text: `💼 [${RANKS[u.rank].name}] ${u.nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: workImg };
   }
 
   // 아부하기
@@ -130,7 +130,7 @@ function handleMessage(userId, nickname, msg) {
     u.last_boss = Date.now();
     db.saveUser(u);
     const sign = gain >= 0 ? "+" : "";
-    return { text: `🙇 [${RANKS[u.rank].name}] ${nickname}\n\n${comment}\n💰 ${sign}${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: bossImg };
+    return { text: `🙇 [${RANKS[u.rank].name}] ${u.nickname}\n\n${comment}\n💰 ${sign}${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: bossImg };
   }
 
   // 강화
