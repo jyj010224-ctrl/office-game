@@ -11,7 +11,7 @@ const IMG_BASE = "https://raw.githubusercontent.com/jyj010224-ctrl/office-game/m
 const RANKS = [
   { name: "신입인턴",     cost:     0, rate:  0,  img: IMG_BASE + "%EC%8B%A0%EC%9E%85%EC%9D%B8%ED%84%B4.png" },
   { name: "응애인턴",     cost:   100, rate: 85,  img: IMG_BASE + "%EC%9D%91%EC%95%A0%EC%9D%B8%ED%84%B4.png" },
-  { name: "아가인턴",     cost:   200, rate: 80,  img: IMG_BASE + "%EC%9D%B8%ED%84%B4.png" },
+  { name: "아가인턴",     cost:   200, rate: 80,  img: IMG_BASE + "%EC%95%84%EA%B0%80%EC%9D%B8%ED%84%B4.png" },
   { name: "사람된인턴",   cost:   350, rate: 75,  img: IMG_BASE + "%EC%82%AC%EB%9E%8C%EB%90%9C%EC%9D%B8%ED%84%B4.png" },
   { name: "베이비 사원",  cost:   500, rate: 70,  img: IMG_BASE + "%EB%B2%A0%EC%9D%B4%EB%B9%84%EC%82%AC%EC%9B%90.png" },
   { name: "새싹사원",     cost:   700, rate: 60,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%EC%82%AC%EC%9B%90.png" },
