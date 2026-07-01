@@ -9,15 +9,21 @@ const IMG_BASE = "https://raw.githubusercontent.com/jyj010224-ctrl/office-game/m
 
 // ── 직급 설정 ──────────────────────────────
 const RANKS = [
-  { name: "초보 인턴",  cost:     0, rate:  0,  img: IMG_BASE + "%EC%B4%88%EB%B3%B4%20%EC%9D%B8%ED%84%B4.png" },
-  { name: "인턴",       cost:   100, rate: 80,  img: IMG_BASE + "%EC%9D%B8%ED%84%B4.png" },
-  { name: "새싹 사원",  cost:   450, rate: 70,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%20%EC%82%AC%EC%9B%90.png" },
-  { name: "사원",       cost:   500, rate: 65,  img: IMG_BASE + "%EC%82%AC%EC%9B%90.png" },
-  { name: "새싹 주임",  cost:   800, rate: 50,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%EC%A3%BC%EC%9E%84.png" },
-  { name: "주임",       cost:  1200, rate: 40,  img: IMG_BASE + "%EC%A0%95%EC%8B%9D%EC%A3%BC%EC%9E%84.png" },
-  { name: "응애대표",   cost:  5000, rate: 30,  img: IMG_BASE + "%EC%9D%91%EC%95%A0%EB%8C%80%ED%91%9C.png" },
-  { name: "팀장",       cost:  6000, rate: 22,  img: IMG_BASE + "%ED%8C%80%EC%9E%A5.png" },
-  { name: "테토대표",   cost:  7000, rate: 15,  img: IMG_BASE + "%ED%85%8C%ED%86%A0%EB%8C%80%ED%91%9C.png" },
+  { name: "신입인턴",     cost:     0, rate:  0,  img: IMG_BASE + "%EC%8B%A0%EC%9E%85%EC%9D%B8%ED%84%B4.png" },
+  { name: "응애인턴",     cost:   100, rate: 85,  img: IMG_BASE + "%EC%9D%91%EC%95%A0%EC%9D%B8%ED%84%B4.png" },
+  { name: "아가인턴",     cost:   200, rate: 80,  img: IMG_BASE + "%EC%9D%B8%ED%84%B4.png" },
+  { name: "사람된인턴",   cost:   350, rate: 75,  img: IMG_BASE + "%EC%82%AC%EB%9E%8C%EB%90%9C%EC%9D%B8%ED%84%B4.png" },
+  { name: "베이비 사원",  cost:   500, rate: 70,  img: IMG_BASE + "%EB%B2%A0%EC%9D%B4%EB%B9%84%EC%82%AC%EC%9B%90.png" },
+  { name: "새싹사원",     cost:   700, rate: 60,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%EC%82%AC%EC%9B%90.png" },
+  { name: "정사원",       cost:  1000, rate: 50,  img: IMG_BASE + "%EC%A0%95%EC%82%AC%EC%9B%90.png" },
+  { name: "잔뼈굵은사원", cost:  1500, rate: 40,  img: IMG_BASE + "%EC%9E%94%EB%BC%88%EA%B5%B5%EC%9D%80%EC%82%AC%EC%9B%90.png" },
+  { name: "새싹 주임",    cost:  2500, rate: 35,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%EC%A3%BC%EC%9E%84.png" },
+  { name: "주임",         cost:  4000, rate: 28,  img: IMG_BASE + "%EC%A3%BC%EC%9E%84.png" },
+  { name: "베테랑 주임",  cost:  6000, rate: 22,  img: IMG_BASE + "%EB%B2%A0%ED%85%8C%EB%9E%91%20%EC%A3%BC%EC%9E%84.png" },
+  { name: "응애대표",     cost:  9000, rate: 15,  img: IMG_BASE + "%EC%9D%91%EC%95%A0%EB%8C%80%ED%91%9C.png" },
+  { name: "팀장",         cost: 12000, rate: 10,  img: IMG_BASE + "%ED%8C%80%EC%9E%A5.png" },
+  { name: "분노팀장",     cost: 16000, rate:  7,  img: IMG_BASE + "%EB%B6%84%EB%85%B8%ED%8C%80%EC%9E%A5.png" },
+  { name: "테토대표",     cost: 20000, rate:  5,  img: IMG_BASE + "%ED%85%8C%ED%86%A0%EB%8C%80%ED%91%9C.png" },
 ];
 
 const COOLDOWN = {
@@ -63,20 +69,35 @@ function handleMessage(userId, nickname, msg) {
 
     let gain, workComment, workImg;
     const roll = Math.random();
-    if (roll < 0.05) {
-      gain = 5000;
-      workComment = "고소장 1000장 돌파!!! 🎉🎉 축하드립니다 특별 상여금을 받았어요!";
-      workImg = IMG_BASE + "%EA%B3%A0%EC%86%8C%EC%9E%A51000.png";
-    } else if (roll < 0.15) {
+    if (roll < 0.10) {
       gain = 1000;
-      workComment = "고소장 500장을 쓰셨어요!!! 축하드립니다 상여금을 받았어요 🎉";
-      workImg = IMG_BASE + "%EA%B3%A0%EC%86%8C%EC%9E%A5500.png";
+      workComment = "우편통지서 1000장 돌파!! 🎉 축하드립니다 상여금을 받았어요!";
+      workImg = IMG_BASE + "%EA%B3%A0%EC%86%8C%EC%9E%A51000.png";
+    } else if (roll < 0.30) {
+      gain = 0;
+      u.points = 0;
+      workComment = "여기 놀러왔나요? 일 제대로 안해요? 그러다가 월급 회수하는 수가 있어요.. 😤";
+      workImg = RANKS[u.rank].img;
+    } else if (roll < 0.40) {
+      gain = -50;
+      workComment = "회사를 지금 몇 개월을 다녔는데 아직도 길을 몰라요? 😑";
+      workImg = IMG_BASE + "%EC%9D%BC%EC%95%88%ED%95%B4.png";
     } else {
       gain = Math.floor(Math.random() * 101) + 50;
       const workComments = [
         "오늘 고소장 많이 썼네 ^^.",
+        "열심히 우편통지서 입력중 ..",
+        "열심히 고소장 쓰는 중 .. ..",
         "오늘 합의가 많이 됐나봐 ^^",
         "야근하는거야?",
+        "오늘 점심 뭐야?",
+        "오늘 전체 회의입니다^^",
+        "오늘 점심 어디로 가지 . .. 그냥 김양갈까..",
+        "우체국 다녀오겠습니다!",
+        "타다닥 . .. 타다닥...",
+        "네 전화받았습니다",
+        "네 법무법인대상입니다~",
+        "합의는 저희가 기준이 ..~..",
         "보고서 언제 올리는거죠?",
         "회의하러 4층으로 올라오시죠.",
         "DT 가실래요?"
@@ -111,16 +132,21 @@ function handleMessage(userId, nickname, msg) {
       return { text: `🚨 [부당수급]\n\n저녁에 대표님이랑 같이 밥 먹었어??\n해당 분 전량 회수입니다.\n\n💸 -${lost} 포인트\n📊 보유: 0 포인트`, img: IMG_BASE + "%EC%A0%80%EB%85%81.png" };
     } else if (roll < 0.25) {
       // 10% 역효과
-      gain = -30;
+      gain = -100;
       comment = "저기 근데 아부도 적당히 해야되는거 아니에요? 😬";
       bossImg = RANKS[u.rank].img;
     } else {
-      gain = Math.floor(Math.random() * 61) + 20;
+      gain = Math.floor(Math.random() * 451) + 50; // 50~500pt
       const normalComments = [
-        "ㅎㅎ 고마워, 밥 먹으러 갈래? 😊",
+        "ㅎㅎ 고마워 오늘 회식할까요? 😊",
+        "ㅎㅎㅎ 철썩 철썩(등을 때리며) 그정돈 아닌데~~ 😄",
+        "(그렇게 영원히 점심시간이 끝나지 않았다) 😌",
+        "만두타임 가질까 ? ^^ ㅎㅎ 🥟",
         "ㅎㅎ 고맙네요 오늘은 제가 지오바네 쏠게요 😊",
         "기분이다 바나프레소 사줄게요 😊",
-        "비품으로 과자 더 추가해줄게요^^ 😊"
+        "비품으로 과자 더 추가해줄게요^^ 😊",
+        "요즘 그게 재밌다던데~ 같이 그럼 갈래요? 😊",
+        "커몬커몬~^^ 윗층으로 올라오세요 😊"
       ];
       comment = normalComments[Math.floor(Math.random() * normalComments.length)];
       bossImg = RANKS[u.rank].img;
@@ -153,8 +179,9 @@ function handleMessage(userId, nickname, msg) {
       const isMax = u.rank >= RANKS.length - 1;
       return { text: `✨ 강화 성공!\n\n${prevName} → ${RANKS[u.rank].name} 승진!\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt` + (isMax ? "\n\n🎉 드디어 테토대표가 됐습니다!" : ""), img: RANKS[u.rank].img };
     } else {
-      // 실패: 50% 직급 유지 / 50% 초보 인턴 강등
-      const demote = Math.random() < 0.2;
+      // 실패: 직급 높을수록 강등 확률 증가 (기본 25%, 최대 60%)
+      const demoteChance = Math.min(0.25 + (u.rank / RANKS.length) * 0.35, 0.60);
+      const demote = Math.random() < demoteChance;
       if (demote) {
         u.rank = 0;
         db.saveUser(u);
@@ -178,8 +205,8 @@ function handleMessage(userId, nickname, msg) {
     if (!t) return `❌ ${targetName}님은 아직 게임을 시작하지 않았어요.`;
     if (t.id === userId) return "❌ 자기 자신과는 대결할 수 없어요.";
 
-    // 30% 확률 면담 이벤트
-    if (Math.random() < 0.3) {
+    // 20% 확률 면담 이벤트
+    if (Math.random() < 0.2) {
       const penalty = Math.min(u.points, 500);
       const tPenalty = Math.min(t.points, 500);
       u.points = Math.max(0, u.points - 500);
@@ -255,7 +282,7 @@ function handleMessage(userId, nickname, msg) {
       "⚔️ 대결 [닉네임] - PvP\n" +
       "👤 내정보 - 내 현황 확인\n" +
       "🏆 랭킹 - 전체 순위\n\n" +
-      "초보인턴→인턴→새싹사원→사원→새싹주임→주임→응애대표→팀장→테토대표"
+      "신입인턴→응애인턴→아가인턴→사람된인턴→베이비사원→새싹사원→정사원→잔뼈굵은사원→새싹주임→주임→베테랑주임→응애대표→팀장→분노팀장→테토대표"
     );
   }
 
