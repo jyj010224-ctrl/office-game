@@ -33,10 +33,18 @@ function checkCooldown(last, type) {
 }
 
 // ── 카카오 응답 형식 ────────────────────────
-function kakaoReply(text) {
+function kakaoReply(text, buttons) {
+  const quickReplies = (buttons || ["일하기", "아부하기", "강화", "내정보", "랭킹"]).map(label => ({
+    action: "message",
+    label,
+    messageText: label
+  }));
   return {
     version: "2.0",
-    template: { outputs: [{ simpleText: { text } }] }
+    template: {
+      outputs: [{ simpleText: { text } }],
+      quickReplies
+    }
   };
 }
 
