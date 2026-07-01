@@ -6,21 +6,21 @@ app.use(express.json());
 
 // ── 직급 설정 ──────────────────────────────
 const RANKS = [
-  { name: "인턴",  cost:     0, rate:  0 },
-  { name: "사원",  cost:   100, rate: 80 },
-  { name: "주임",  cost:   300, rate: 65 },
-  { name: "대리",  cost:   600, rate: 50 },
-  { name: "과장",  cost:  1000, rate: 40 },
-  { name: "팀장",  cost:  2000, rate: 30 },
-  { name: "국장",  cost:  4000, rate: 22 },
-  { name: "이사",  cost:  7000, rate: 15 },
-  { name: "대표",  cost: 12000, rate:  8 },
+  { name: "초보 인턴",  cost:     0, rate:  0  },
+  { name: "인턴",       cost:   100, rate: 80  },
+  { name: "새싹 사원",  cost:   450, rate: 70  },
+  { name: "사원",       cost:   500, rate: 65  },
+  { name: "새싹 주임",  cost:   800, rate: 50  },
+  { name: "주임",       cost:  1200, rate: 40  },
+  { name: "응애대표",   cost:  5000, rate: 30  },
+  { name: "팀장",       cost:  6000, rate: 22  },
+  { name: "테토대표",   cost:  7000, rate: 15  },
 ];
 
 const COOLDOWN = {
   일하기:   30 * 60 * 1000,
-  아부하기: 10 * 60 * 1000,
-  대결:     60 * 60 * 1000,
+  아부하기:       30 * 1000,  // 30초
+  대결:                    0,  // 쿨타임 없음
 };
 
 // ── 쿨타임 체크 ────────────────────────────
@@ -62,7 +62,12 @@ function handleMessage(userId, nickname, msg) {
     u.points += gain;
     u.last_work = Date.now();
     db.saveUser(u);
-    return `💼 [${RANKS[u.rank].name}] ${nickname}\n\n야근 완료! 수고했어요.\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`;
+    const workComments = [
+      "오늘 고소장 많이 썼네 ^^.",
+      "오늘 합의가 많이 됐나봐 ^^"
+    ];
+    const workComment = workComments[Math.floor(Math.random() * workComments.length)];
+    return `💼 [${RANKS[u.rank].name}] ${nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`;
   }
 
   // 아부하기
@@ -74,13 +79,17 @@ function handleMessage(userId, nickname, msg) {
     let gain, comment;
     if (roll < 0.05) {
       gain = 150;
-      comment = '"자네가 없으면 회사가 안 돌아가!" 부장님 감동! 🎉';
+      comment = "너 없으면 회사가 안 돌아가네요 ^^ 저녁 먹으러 갈래요? 🎉";
     } else if (roll < 0.15) {
       gain = -30;
       comment = "아부가 너무 티났어요... 부장님이 불쾌해했습니다. 😬";
     } else {
       gain = Math.floor(Math.random() * 61) + 20;
-      comment = '"고마워, 열심히 하게!" 부장님이 흐뭇해했어요. 😊';
+      const normalComments = [
+        "ㅎㅎ 고마워, 밥 먹으러 갈래? 😊",
+        "ㅎㅎ 고맙네요 오늘은 제가 지오바네 쏠게요 😊"
+      ];
+      comment = normalComments[Math.floor(Math.random() * normalComments.length)];
     }
 
     u.points = Math.max(0, u.points + gain);
@@ -109,11 +118,18 @@ function handleMessage(userId, nickname, msg) {
       db.saveUser(u);
       const isMax = u.rank >= RANKS.length - 1;
       return `✨ 강화 성공!\n\n${prevName} → ${RANKS[u.rank].name} 승진!\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt` +
-        (isMax ? "\n\n🎉 드디어 대표가 됐습니다!" : "");
+        (isMax ? "\n\n🎉 드디어 테토대표가 됐습니다!" : "");
     } else {
-      u.rank = 0;
-      db.saveUser(u);
-      return `💥 강화 실패!\n\n${prevName} → 인턴으로 강등...\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt\n\n😭 처음부터 다시 시작이에요!`;
+      // 실패: 50% 직급 유지 / 50% 초보 인턴 강등
+      const demote = Math.random() < 0.2;
+      if (demote) {
+        u.rank = 0;
+        db.saveUser(u);
+        return `💥 강화 실패!\n\n${prevName} → 초보 인턴으로 강등...\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt\n\n😭 처음부터 다시 시작이에요!`;
+      } else {
+        db.saveUser(u);
+        return `💥 강화 실패!\n\n${prevName} 직급 유지...\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt\n\n😮‍💨 다행히 강등은 면했어요!`;
+      }
     }
   }
 
@@ -171,17 +187,30 @@ function handleMessage(userId, nickname, msg) {
     return lines.join("\n");
   }
 
+  // 이름설정
+  if (msg.startsWith("이름설정")) {
+    const newName = msg.replace("이름설정", "").trim();
+    if (!newName) return "❌ 사용법: 이름설정 [원하는이름]";
+    if (newName.length > 10) return "❌ 이름은 10자 이내로 해주세요!";
+    const existing = db.getUserByNickname(newName);
+    if (existing && existing.id !== userId) return `❌ "${newName}"은 이미 사용 중인 이름이에요!`;
+    u.nickname = newName;
+    db.saveUser(u);
+    return `✅ 이름이 "${newName}"으로 설정됐어요!\n대결할 때 이 이름으로 표시돼요.`;
+  }
+
   // 도움말
   if (msg === "도움말" || msg === "명령어") {
     return (
       "📋 직장인 육성 게임\n\n" +
+      "✏️ 이름설정 [이름] - 게임 내 닉네임 설정\n" +
       "💼 일하기 - 포인트 획득 (30분 쿨)\n" +
-      "🙇 아부하기 - 포인트 획득 (10분 쿨)\n" +
-      "⚡ 강화 - 승진 도전 (실패 시 인턴 추락!)\n" +
-      "⚔️ 대결 [닉네임] - PvP (1시간 쿨)\n" +
+      "🙇 아부하기 - 포인트 획득 (30초 쿨)\n" +
+      "⚡ 강화 - 승진 도전 (실패 시 직급유지 or 초보인턴 강등!)\n" +
+      "⚔️ 대결 [닉네임] - PvP\n" +
       "👤 내정보 - 내 현황 확인\n" +
       "🏆 랭킹 - 전체 순위\n\n" +
-      "인턴→사원→주임→대리→과장→팀장→국장→이사→대표"
+      "초보인턴→인턴→새싹사원→사원→새싹주임→주임→응애대표→팀장→테토대표"
     );
   }
 
