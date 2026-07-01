@@ -4,17 +4,20 @@ const db = require("./db");
 const app = express();
 app.use(express.json());
 
+// ── 이미지 베이스 URL ───────────────────────
+const IMG_BASE = "https://raw.githubusercontent.com/jyj010224-ctrl/office-game/main/images/";
+
 // ── 직급 설정 ──────────────────────────────
 const RANKS = [
-  { name: "초보 인턴",  cost:     0, rate:  0  },
-  { name: "인턴",       cost:   100, rate: 80  },
-  { name: "새싹 사원",  cost:   450, rate: 70  },
-  { name: "사원",       cost:   500, rate: 65  },
-  { name: "새싹 주임",  cost:   800, rate: 50  },
-  { name: "주임",       cost:  1200, rate: 40  },
-  { name: "응애대표",   cost:  5000, rate: 30  },
-  { name: "팀장",       cost:  6000, rate: 22  },
-  { name: "테토대표",   cost:  7000, rate: 15  },
+  { name: "초보 인턴",  cost:     0, rate:  0,  img: IMG_BASE + "%EC%B4%88%EB%B3%B4%20%EC%9D%B8%ED%84%B4.png" },
+  { name: "인턴",       cost:   100, rate: 80,  img: IMG_BASE + "%EC%9D%B8%ED%84%B4.png" },
+  { name: "새싹 사원",  cost:   450, rate: 70,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%20%EC%82%AC%EC%9B%90.png" },
+  { name: "사원",       cost:   500, rate: 65,  img: IMG_BASE + "%EC%82%AC%EC%9B%90.png" },
+  { name: "새싹 주임",  cost:   800, rate: 50,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%EC%A3%BC%EC%9E%84.png" },
+  { name: "주임",       cost:  1200, rate: 40,  img: IMG_BASE + "%EC%A0%95%EC%8B%9D%EC%A3%BC%EC%9E%84.png" },
+  { name: "응애대표",   cost:  5000, rate: 30,  img: IMG_BASE + "%EC%9D%91%EC%95%A0%EB%8C%80%ED%91%9C.png" },
+  { name: "팀장",       cost:  6000, rate: 22,  img: IMG_BASE + "%ED%8C%80%EC%9E%A5.png" },
+  { name: "테토대표",   cost:  7000, rate: 15,  img: IMG_BASE + "%ED%85%8C%ED%86%A0%EB%8C%80%ED%91%9C.png" },
 ];
 
 const COOLDOWN = {
@@ -33,18 +36,18 @@ function checkCooldown(last, type) {
 }
 
 // ── 카카오 응답 형식 ────────────────────────
-function kakaoReply(text, buttons) {
+function kakaoReply(text, buttons, imgUrl) {
   const quickReplies = (buttons || ["일하기", "아부하기", "강화", "내정보", "랭킹"]).map(label => ({
     action: "message",
     label,
     messageText: label
   }));
+  const output = imgUrl
+    ? { basicCard: { description: text, thumbnail: { imageUrl: imgUrl } } }
+    : { simpleText: { text } };
   return {
     version: "2.0",
-    template: {
-      outputs: [{ simpleText: { text } }],
-      quickReplies
-    }
+    template: { outputs: [output], quickReplies }
   };
 }
 
@@ -67,7 +70,7 @@ function handleMessage(userId, nickname, msg) {
       "오늘 합의가 많이 됐나봐 ^^"
     ];
     const workComment = workComments[Math.floor(Math.random() * workComments.length)];
-    return `💼 [${RANKS[u.rank].name}] ${nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`;
+    return { text: `💼 [${RANKS[u.rank].name}] ${nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: RANKS[u.rank].img };
   }
 
   // 아부하기
@@ -96,7 +99,7 @@ function handleMessage(userId, nickname, msg) {
     u.last_boss = Date.now();
     db.saveUser(u);
     const sign = gain >= 0 ? "+" : "";
-    return `🙇 [${RANKS[u.rank].name}] ${nickname}\n\n${comment}\n💰 ${sign}${gain} 포인트\n📊 보유: ${u.points} 포인트`;
+    return { text: `🙇 [${RANKS[u.rank].name}] ${nickname}\n\n${comment}\n💰 ${sign}${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: RANKS[u.rank].img };
   }
 
   // 강화
@@ -117,8 +120,7 @@ function handleMessage(userId, nickname, msg) {
       u.rank++;
       db.saveUser(u);
       const isMax = u.rank >= RANKS.length - 1;
-      return `✨ 강화 성공!\n\n${prevName} → ${RANKS[u.rank].name} 승진!\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt` +
-        (isMax ? "\n\n🎉 드디어 테토대표가 됐습니다!" : "");
+      return { text: `✨ 강화 성공!\n\n${prevName} → ${RANKS[u.rank].name} 승진!\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt` + (isMax ? "\n\n🎉 드디어 테토대표가 됐습니다!" : ""), img: RANKS[u.rank].img };
     } else {
       // 실패: 50% 직급 유지 / 50% 초보 인턴 강등
       const demote = Math.random() < 0.2;
@@ -228,7 +230,11 @@ app.post("/kakao", (req, res) => {
     const reply = handleMessage(userId, nickname, msg);
     if (!reply) return res.status(200).json(kakaoReply(""));
 
-    res.json(kakaoReply(reply));
+    if (typeof reply === "object") {
+      res.json(kakaoReply(reply.text, null, reply.img));
+    } else {
+      res.json(kakaoReply(reply));
+    }
   } catch (e) {
     console.error(e);
     res.status(500).json(kakaoReply("오류가 발생했어요. 잠시 후 다시 시도해주세요."));
