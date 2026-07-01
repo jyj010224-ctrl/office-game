@@ -37,7 +37,7 @@ function checkCooldown(last, type) {
 
 // ── 카카오 응답 형식 ────────────────────────
 function kakaoReply(text, buttons, imgUrl) {
-  const quickReplies = (buttons || ["일하기", "아부하기", "강화", "내정보", "랭킹"]).map(label => ({
+  const quickReplies = (buttons || ["일하기", "아부하기", "강화", "대결", "내정보", "랭킹"]).map(label => ({
     action: "message",
     label,
     messageText: label
@@ -67,7 +67,11 @@ function handleMessage(userId, nickname, msg) {
     db.saveUser(u);
     const workComments = [
       "오늘 고소장 많이 썼네 ^^.",
-      "오늘 합의가 많이 됐나봐 ^^"
+      "오늘 합의가 많이 됐나봐 ^^",
+      "야근하는거야?",
+      "보고서 언제 올리는거죠?",
+      "회의하러 4층으로 올라오시죠.",
+      "DT 가실래요?"
     ];
     const workComment = workComments[Math.floor(Math.random() * workComments.length)];
     return { text: `💼 [${RANKS[u.rank].name}] ${nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: RANKS[u.rank].img };
@@ -85,12 +89,14 @@ function handleMessage(userId, nickname, msg) {
       comment = "너 없으면 회사가 안 돌아가네요 ^^ 저녁 먹으러 갈래요? 🎉";
     } else if (roll < 0.15) {
       gain = -30;
-      comment = "아부가 너무 티났어요... 부장님이 불쾌해했습니다. 😬";
+      comment = "저기 근데 아부도 적당히 해야되는거 아니에요? 😬";
     } else {
       gain = Math.floor(Math.random() * 61) + 20;
       const normalComments = [
         "ㅎㅎ 고마워, 밥 먹으러 갈래? 😊",
-        "ㅎㅎ 고맙네요 오늘은 제가 지오바네 쏠게요 😊"
+        "ㅎㅎ 고맙네요 오늘은 제가 지오바네 쏠게요 😊",
+        "기분이다 바나프레소 사줄게요 😊",
+        "비품으로 과자 더 추가해줄게요^^ 😊"
       ];
       comment = normalComments[Math.floor(Math.random() * normalComments.length)];
     }
@@ -138,7 +144,7 @@ function handleMessage(userId, nickname, msg) {
   // 대결
   if (msg.startsWith("대결")) {
     const targetName = msg.replace("대결", "").trim();
-    if (!targetName) return "❌ 사용법: 대결 [상대닉네임]";
+    if (!targetName) return "⚔️ 대결 방법\n\n버튼을 닫고 채팅창에\n'대결 홍길동'\n이렇게 상대 닉네임을 입력해주세요!";
 
     const cd = checkCooldown(u.last_battle, "대결");
     if (cd) return `⏰ ${cd}`;
@@ -204,7 +210,7 @@ function handleMessage(userId, nickname, msg) {
   // 도움말
   if (msg === "도움말" || msg === "명령어") {
     return (
-      "📋 직장인 육성 게임\n\n" +
+      "✏️ 먼저 '이름설정 [이름]'으로 닉네임을 설정하고 게임을 시작해보세요!\n\n📋 직장인 육성 게임\n\n" +
       "✏️ 이름설정 [이름] - 게임 내 닉네임 설정\n" +
       "💼 일하기 - 포인트 획득 (3초 쿨)\n" +
       "🙇 아부하기 - 포인트 획득 (30초 쿨)\n" +
