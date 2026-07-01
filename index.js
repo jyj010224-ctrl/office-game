@@ -61,20 +61,33 @@ function handleMessage(userId, nickname, msg) {
     const cd = checkCooldown(u.last_work, "일하기");
     if (cd) return `⏰ ${cd}`;
 
-    const gain = Math.floor(Math.random() * 101) + 50;
+    let gain, workComment, workImg;
+    const roll = Math.random();
+    if (roll < 0.05) {
+      gain = 5000;
+      workComment = "고소장 1000장 돌파!!! 🎉🎉 축하드립니다 특별 상여금을 받았어요!";
+      workImg = IMG_BASE + "%EA%B3%A0%EC%86%8C%EC%9E%A51000.png";
+    } else if (roll < 0.15) {
+      gain = 1000;
+      workComment = "고소장 500장을 쓰셨어요!!! 축하드립니다 상여금을 받았어요 🎉";
+      workImg = IMG_BASE + "%EA%B3%A0%EC%86%8C%EC%9E%A5500.png";
+    } else {
+      gain = Math.floor(Math.random() * 101) + 50;
+      const workComments = [
+        "오늘 고소장 많이 썼네 ^^.",
+        "오늘 합의가 많이 됐나봐 ^^",
+        "야근하는거야?",
+        "보고서 언제 올리는거죠?",
+        "회의하러 4층으로 올라오시죠.",
+        "DT 가실래요?"
+      ];
+      workComment = workComments[Math.floor(Math.random() * workComments.length)];
+      workImg = RANKS[u.rank].img;
+    }
     u.points += gain;
     u.last_work = Date.now();
     db.saveUser(u);
-    const workComments = [
-      "오늘 고소장 많이 썼네 ^^.",
-      "오늘 합의가 많이 됐나봐 ^^",
-      "야근하는거야?",
-      "보고서 언제 올리는거죠?",
-      "회의하러 4층으로 올라오시죠.",
-      "DT 가실래요?"
-    ];
-    const workComment = workComments[Math.floor(Math.random() * workComments.length)];
-    return { text: `💼 [${RANKS[u.rank].name}] ${nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: RANKS[u.rank].img };
+    return { text: `💼 [${RANKS[u.rank].name}] ${nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: workImg };
   }
 
   // 아부하기
@@ -83,13 +96,24 @@ function handleMessage(userId, nickname, msg) {
     if (cd) return `⏰ ${cd}`;
 
     const roll = Math.random();
-    let gain, comment;
+    let gain, comment, bossImg;
     if (roll < 0.05) {
-      gain = 150;
-      comment = "너 없으면 회사가 안 돌아가네요 ^^ 저녁 먹으러 갈래요? 🎉";
+      // 5% 아부의 신
+      gain = 2000;
+      comment = "아부의 신 강림...✨ 대표님이 극찬하셨습니다!";
+      bossImg = IMG_BASE + "%EC%95%84%EB%B6%80%EC%9D%98%EC%8B%A0.png";
     } else if (roll < 0.15) {
+      // 10% 부당수급
+      const lost = u.points;
+      u.points = 0;
+      u.last_boss = Date.now();
+      db.saveUser(u);
+      return { text: `🚨 [부당수급]\n\n저녁에 대표님이랑 같이 밥 먹었어??\n해당 분 전량 회수입니다.\n\n💸 -${lost} 포인트\n📊 보유: 0 포인트`, img: IMG_BASE + "%EC%A0%80%EB%85%81.png" };
+    } else if (roll < 0.25) {
+      // 10% 역효과
       gain = -30;
       comment = "저기 근데 아부도 적당히 해야되는거 아니에요? 😬";
+      bossImg = RANKS[u.rank].img;
     } else {
       gain = Math.floor(Math.random() * 61) + 20;
       const normalComments = [
@@ -99,13 +123,14 @@ function handleMessage(userId, nickname, msg) {
         "비품으로 과자 더 추가해줄게요^^ 😊"
       ];
       comment = normalComments[Math.floor(Math.random() * normalComments.length)];
+      bossImg = RANKS[u.rank].img;
     }
 
     u.points = Math.max(0, u.points + gain);
     u.last_boss = Date.now();
     db.saveUser(u);
     const sign = gain >= 0 ? "+" : "";
-    return { text: `🙇 [${RANKS[u.rank].name}] ${nickname}\n\n${comment}\n💰 ${sign}${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: RANKS[u.rank].img };
+    return { text: `🙇 [${RANKS[u.rank].name}] ${nickname}\n\n${comment}\n💰 ${sign}${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: bossImg };
   }
 
   // 강화
@@ -152,6 +177,18 @@ function handleMessage(userId, nickname, msg) {
     const t = db.getUserByNickname(targetName);
     if (!t) return `❌ ${targetName}님은 아직 게임을 시작하지 않았어요.`;
     if (t.id === userId) return "❌ 자기 자신과는 대결할 수 없어요.";
+
+    // 30% 확률 면담 이벤트
+    if (Math.random() < 0.3) {
+      const penalty = Math.min(u.points, 500);
+      const tPenalty = Math.min(t.points, 500);
+      u.points = Math.max(0, u.points - 500);
+      t.points = Math.max(0, t.points - 500);
+      u.last_battle = Date.now();
+      db.saveUser(u);
+      db.saveUser(t);
+      return { text: `🚨 아니 지금 왜 싸우는거야?\n면담하러 둘 다 회의실로 올라와요.\n\n[${RANKS[u.rank].name}] ${nickname} -${penalty}pt\n[${RANKS[t.rank].name}] ${targetName} -${tPenalty}pt`, img: IMG_BASE + "%EC%8B%B8%EC%9A%B0%EC%A7%80%EB%A7%88.png" };
+    }
 
     const uPower = u.rank * 10 + Math.random() * 100;
     const tPower = t.rank * 10 + Math.random() * 100;
@@ -210,7 +247,7 @@ function handleMessage(userId, nickname, msg) {
   // 도움말
   if (msg === "도움말" || msg === "명령어") {
     return (
-      "✏️ 먼저 '이름설정 [이름]'으로 닉네임을 설정하고 게임을 시작해보세요!\n\n📋 직장인 육성 게임\n\n" +
+      "✏️ 먼저 '이름설정 [이름]'으로 닉네임을 설정하고 게임을 시작해보세요!\n🏆 랭킹에서 상대방 이름 확인 후 '대결 [이름]'으로 대결 신청하세요!\n\n📋 직장인 육성 게임\n\n" +
       "✏️ 이름설정 [이름] - 게임 내 닉네임 설정\n" +
       "💼 일하기 - 포인트 획득 (3초 쿨)\n" +
       "🙇 아부하기 - 포인트 획득 (30초 쿨)\n" +
