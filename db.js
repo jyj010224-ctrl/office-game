@@ -10,9 +10,15 @@ db.exec(`
     total_enhance INTEGER DEFAULT 0,
     last_work INTEGER DEFAULT 0,
     last_boss INTEGER DEFAULT 0,
-    last_battle INTEGER DEFAULT 0
+    last_battle INTEGER DEFAULT 0,
+    last_resign INTEGER DEFAULT 0,
+    resign_count INTEGER DEFAULT 0
   )
 `);
+
+// 기존 테이블에 컬럼 없으면 추가
+try { db.exec(`ALTER TABLE users ADD COLUMN last_resign INTEGER DEFAULT 0`); } catch(e) {}
+try { db.exec(`ALTER TABLE users ADD COLUMN resign_count INTEGER DEFAULT 0`); } catch(e) {}
 
 module.exports = {
   getUser(id, nickname) {
@@ -35,12 +41,15 @@ module.exports = {
         total_enhance = ?,
         last_work = ?,
         last_boss = ?,
-        last_battle = ?
+        last_battle = ?,
+        last_resign = ?,
+        resign_count = ?
       WHERE id = ?
     `).run(
       user.nickname, user.rank, user.points,
       user.total_enhance, user.last_work, user.last_boss,
-      user.last_battle, user.id
+      user.last_battle, user.last_resign || 0, user.resign_count || 0,
+      user.id
     );
   },
 
