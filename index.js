@@ -10,11 +10,11 @@ const IMG_BASE = "https://raw.githubusercontent.com/jyj010224-ctrl/office-game/m
 // ── 직급 설정 ──────────────────────────────
 const RANKS = [
   { name: "신입인턴",           cost:      0, rate:  0,  img: IMG_BASE + "%EC%8B%A0%EC%9E%85%EC%9D%B8%ED%84%B4.png" },
-  { name: "아가인턴",           cost:    100, rate: 65,  img: IMG_BASE + "%EC%95%84%EA%B0%80%EC%9D%B8%ED%84%B4.png" },
-  { name: "청소년인턴",         cost:    300, rate: 60,  img: IMG_BASE + "%EC%B2%AD%EC%86%8C%EB%85%84%EC%9D%B8%ED%84%B4.png" },
-  { name: "사람된인턴",         cost:    650, rate: 55,  img: IMG_BASE + "%EC%82%AC%EB%9E%8C%EB%90%9C%EC%9D%B8%ED%84%B4.png" },
-  { name: "베이비 사원",        cost:   1000, rate: 50,  img: IMG_BASE + "%EB%B2%A0%EC%9D%B4%EB%B9%84%EC%82%AC%EC%9B%90.png" },
-  { name: "새싹사원",           cost:   3000, rate: 42,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%EC%82%AC%EC%9B%90.png" },
+  { name: "아가인턴",           cost:    100, rate: 55,  img: IMG_BASE + "%EC%95%84%EA%B0%80%EC%9D%B8%ED%84%B4.png" },
+  { name: "청소년인턴",         cost:    300, rate: 48,  img: IMG_BASE + "%EC%B2%AD%EC%86%8C%EB%85%84%EC%9D%B8%ED%84%B4.png" },
+  { name: "사람된인턴",         cost:    650, rate: 42,  img: IMG_BASE + "%EC%82%AC%EB%9E%8C%EB%90%9C%EC%9D%B8%ED%84%B4.png" },
+  { name: "베이비 사원",        cost:   1000, rate: 36,  img: IMG_BASE + "%EB%B2%A0%EC%9D%B4%EB%B9%84%EC%82%AC%EC%9B%90.png" },
+  { name: "새싹사원",           cost:   3000, rate: 30,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%EC%82%AC%EC%9B%90.png" },
   { name: "정사원",             cost:   5000, rate: 35,  img: IMG_BASE + "%EC%A0%95%EC%82%AC%EC%9B%90.png" },
   { name: "잔뼈굵은사원",       cost:   6500, rate: 28,  img: IMG_BASE + "%EC%9E%94%EB%BC%88%EA%B5%B5%EC%9D%80%EC%82%AC%EC%9B%90.png" },
   { name: "새싹 주임",          cost:   7500, rate: 22,  img: IMG_BASE + "%EC%83%88%EC%8B%B9%EC%A3%BC%EC%9E%84.png" },
