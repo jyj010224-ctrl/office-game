@@ -66,6 +66,16 @@ function handleMessage(userId, nickname, msg) {
 
   // 일하기
   if (msg === "일하기") {
+    // 만두타임 피버 중
+    if (u.fever_type === "만두" && Date.now() < u.fever_end) {
+      u.points += 50;
+      db.saveUser(u);
+      const remain = Math.ceil((u.fever_end - Date.now()) / 1000);
+      return { text: `🥟 [만두타임 피버!]\n\n만두 하나 냠냠 😋\n💰 +50 포인트\n📊 보유: ${u.points} 포인트\n⏱ 남은 시간: ${remain}초`, img: IMG_BASE + "%EB%A7%8C%EB%91%90%ED%83%80%EC%9E%84.png" };
+    }
+    // 피버 종료 처리
+    if (u.fever_type === "만두") { u.fever_type = null; u.fever_end = 0; }
+
     const cd = checkCooldown(u.last_work, "일하기");
     if (cd) return `⏰ ${cd}`;
 
@@ -95,12 +105,20 @@ function handleMessage(userId, nickname, msg) {
       // 7% 여기 놀러왔나요
       gain = -500;
       workComment = "여기 놀러왔나요? 일 제대로 안해요? 😤";
-      workImg = RANKS[u.rank].img;
+      workImg = IMG_BASE + "%EC%9D%BC%EC%95%88%ED%95%B4.png";
     } else if (roll < 0.45) {
       // 10% 밥 먹으러 갈래?
       gain = -100;
       workComment = "밥 먹으러 갈래요? 🍱";
       workImg = RANKS[u.rank].img;
+    } else if (roll < 0.50) {
+      // 5% 만두타임 피버 시작 (0.45~0.50)
+      u.fever_type = "만두";
+      u.fever_end = Date.now() + 60 * 1000;
+      u.points += 50;
+      u.last_work = Date.now();
+      db.saveUser(u);
+      return { text: `🥟 [만두타임 피버 시작!]\n\n만두 왔다네, 4층 회의실로 올라와요 ^^\n\n1분간 일하기 쿨타임 없이 클릭할 때마다 +50pt!\n💰 +50 포인트\n📊 보유: ${u.points} 포인트`, img: IMG_BASE + "%EB%A7%8C%EB%91%90%ED%83%80%EC%9E%84.png" };
     } else {
       gain = Math.floor(Math.random() * 101) + 50;
       const workComments = [
@@ -127,11 +145,22 @@ function handleMessage(userId, nickname, msg) {
     u.points += gain;
     u.last_work = Date.now();
     db.saveUser(u);
-    return { text: `💼 [${RANKS[u.rank].name}] ${u.nickname}\n\n${workComment}\n💰 +${gain} 포인트\n📊 보유: ${u.points} 포인트`, img: workImg };
+    const workSign = gain >= 0 ? `+${gain}` : `${gain}`;
+    return { text: `💼 [${RANKS[u.rank].name}] ${u.nickname}\n\n${workComment}\n💰 ${workSign} 포인트\n📊 보유: ${u.points} 포인트`, img: workImg };
   }
 
   // 아부하기
   if (msg === "아부하기") {
+    // 장작타임 피버 중
+    if (u.fever_type === "장작" && Date.now() < u.fever_end) {
+      u.points += 60;
+      db.saveUser(u);
+      const remain = Math.ceil((u.fever_end - Date.now()) / 1000);
+      return { text: `🔥 [장작타임 피버!]\n\n마음껏 드세요 😋\n💰 +60 포인트\n📊 보유: ${u.points} 포인트\n⏱ 남은 시간: ${remain}초`, img: IMG_BASE + "%EC%9E%A5%EC%9E%91%ED%83%80%EC%9E%84.png" };
+    }
+    // 피버 종료 처리
+    if (u.fever_type === "장작") { u.fever_type = null; u.fever_end = 0; }
+
     const cd = checkCooldown(u.last_boss, "아부하기");
     if (cd) return `⏰ ${cd}`;
 
@@ -156,6 +185,14 @@ function handleMessage(userId, nickname, msg) {
       gain = -100;
       comment = "저기 근데 아부도 적당히 해야되는거 아니에요? 😬";
       bossImg = RANKS[u.rank].img;
+    } else if (roll < 0.30) {
+      // 5% 장작타임 피버 시작 (0.25~0.30)
+      u.fever_type = "장작";
+      u.fever_end = Date.now() + 60 * 1000;
+      u.points += 60;
+      u.last_boss = Date.now();
+      db.saveUser(u);
+      return { text: `🔥 [장작타임 피버 시작!]\n\n저녁에 산작장작구이 가지 뭐 마음껏 먹어요 🍖\n\n1분간 아부하기 쿨타임 없이 클릭할 때마다 +60pt!\n💰 +60 포인트\n📊 보유: ${u.points} 포인트`, img: IMG_BASE + "%EC%9E%A5%EC%9E%91%ED%83%80%EC%9E%84.png" };
     } else {
       gain = Math.floor(Math.random() * 451) + 50; // 50~500pt
       const normalComments = [
@@ -200,16 +237,23 @@ function handleMessage(userId, nickname, msg) {
       const isMax = u.rank >= RANKS.length - 1;
       return { text: `✨ 강화 성공!\n\n${prevName} → ${RANKS[u.rank].name} 승진!\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt` + (isMax ? "\n\n🎉 드디어 태토 of 태토 대표가 됐습니다!" : ""), img: RANKS[u.rank].img };
     } else {
-      // 실패: 직급 높을수록 강등 확률 증가 (기본 25%, 최대 60%)
-      const demoteChance = Math.min(0.25 + (u.rank / RANKS.length) * 0.35, 0.60);
-      const demote = Math.random() < demoteChance;
-      if (demote) {
+      const rollFail = Math.random();
+      if (rollFail < 0.01) {
+        // 1% 신입인턴으로 추락
         u.rank = 0;
         db.saveUser(u);
-        return `💥 강화 실패!\n\n${prevName} → 초보 인턴으로 강등...\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt\n\n😭 처음부터 다시 시작이에요!`;
+        return `💥 강화 대참사!\n\n${prevName} → 신입인턴으로 추락...\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt\n\n😭 처음부터 다시 시작이에요!`;
       } else {
-        db.saveUser(u);
-        return `💥 강화 실패!\n\n${prevName} 직급 유지...\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt\n\n😮‍💨 다행히 강등은 면했어요!`;
+        const demoteChance = Math.min(0.25 + (u.rank / RANKS.length) * 0.35, 0.60);
+        const demote = Math.random() < demoteChance;
+        if (demote) {
+          u.rank = Math.max(0, u.rank - 1);
+          db.saveUser(u);
+          return `💥 강화 실패!\n\n${prevName} → ${RANKS[u.rank].name}으로 강등...\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt`;
+        } else {
+          db.saveUser(u);
+          return `💥 강화 실패!\n\n${prevName} 직급 유지...\n💰 -${next.cost}pt\n📊 잔여: ${u.points}pt\n\n😮‍💨 다행히 강등은 면했어요!`;
+        }
       }
     }
   }
@@ -235,7 +279,7 @@ function handleMessage(userId, nickname, msg) {
       u.last_battle = Date.now();
       db.saveUser(u);
       db.saveUser(t);
-      return { text: `🚨 아니 지금 왜 싸우는거야?\n면담하러 둘 다 회의실로 올라와요.\n\n[${RANKS[u.rank].name}] ${nickname} -${penalty}pt\n[${RANKS[t.rank].name}] ${targetName} -${tPenalty}pt`, img: IMG_BASE + "%EC%8B%B8%EC%9A%B0%EC%A7%80%EB%A7%88.png" };
+      return { text: `🚨 아니 지금 왜 싸우는거야?\n면담하러 둘 다 회의실로 올라와요.\n\n[${RANKS[u.rank].name}] ${u.nickname} -${penalty}pt\n[${RANKS[t.rank].name}] ${targetName} -${tPenalty}pt`, img: IMG_BASE + "%EC%8B%B8%EC%9A%B0%EC%A7%80%EB%A7%88.png" };
     }
 
     const uPower = u.rank * 10 + Math.random() * 100;
@@ -249,13 +293,13 @@ function handleMessage(userId, nickname, msg) {
       t.points = Math.max(0, t.points - prize);
       db.saveUser(u);
       db.saveUser(t);
-      return `⚔️ 대결 결과\n\n[${RANKS[u.rank].name}] ${nickname}\n  🆚\n[${RANKS[t.rank].name}] ${targetName}\n\n🏆 ${nickname} 승리!\n💰 +${prize}pt`;
+      return `⚔️ 대결 결과\n\n[${RANKS[u.rank].name}] ${u.nickname}\n  🆚\n[${RANKS[t.rank].name}] ${targetName}\n\n🏆 ${u.nickname} 승리!\n💰 +${prize}pt`;
     } else {
       u.points = Math.max(0, u.points - prize);
       t.points += prize;
       db.saveUser(u);
       db.saveUser(t);
-      return `⚔️ 대결 결과\n\n[${RANKS[u.rank].name}] ${nickname}\n  🆚\n[${RANKS[t.rank].name}] ${targetName}\n\n🏆 ${targetName} 승리!\n💸 -${prize}pt`;
+      return `⚔️ 대결 결과\n\n[${RANKS[u.rank].name}] ${u.nickname}\n  🆚\n[${RANKS[t.rank].name}] ${targetName}\n\n🏆 ${targetName} 승리!\n💸 -${prize}pt`;
     }
   }
 
@@ -320,7 +364,7 @@ function handleMessage(userId, nickname, msg) {
         u.total_enhance = 0;
         u.resign_count = 0;
         db.saveUser(u);
-        return { text: `🎉 퇴사 성공!!!\n\n모든 것이 초기화됐어요.\n새 인생 응원합니다~ 👋\n\n(신입인턴으로 재입사됩니다)`, img: IMG_BASE + "%ED%85%8C%ED%86%A0%EB%8C%80%ED%91%9C.png" };
+        return { text: `🎉 퇴사 성공!!!\n\n모든 것이 초기화됐어요.\n새 인생 응원합니다~ 👋\n\n(신입인턴으로 재입사됩니다)`, img: IMG_BASE + "%ED%87%B4%EC%82%AC.png" };
       } else {
         u.resign_count = 0;
         db.saveUser(u);
